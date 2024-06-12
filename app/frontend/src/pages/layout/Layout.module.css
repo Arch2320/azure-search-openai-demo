@@ -1,11 +1,11 @@
 .layout {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: 100vh; /* Ensure it takes the full height of the viewport */
 }
 
 .header {
-    background-color: #222222;
+    background-color: #fcfcfc;
     color: #f2f2f2;
 }
 
@@ -21,17 +21,17 @@
     display: flex;
     align-items: center;
     margin-right: 40px;
-    color: #f2f2f2;
+    color: #050000;
     text-decoration: none;
 }
 
 .headerLogo {
-    height: 40px;
+    height: 400px;
 }
 
 .headerTitle {
     margin-left: 12px;
-    font-weight: 600;
+    font-weight: 1000;
 }
 
 .headerNavList {
@@ -74,5 +74,20 @@
 }
 
 .githubLogo {
-    height: 20px;
+    height: 40px;
+}
+
+.mainContent {
+    flex: 1;
+    padding-bottom: 60px; /* Add padding equal to or slightly larger than the footer height */
+}
+
+.footer {
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #f1f1f1; /* Optional: to make it stand out */
+    padding: 10px 0;
+    font-size: 13px; /* Optional: adjust font size */
 }

@@ -10,10 +10,10 @@ from approaches.approach import Approach
 
 class ChatApproach(Approach, ABC):
     query_prompt_few_shots: list[ChatCompletionMessageParam] = [
-        {"role": "user", "content": "How did crypto do last year?"},
-        {"role": "assistant", "content": "Summarize Cryptocurrency Market Dynamics from last year"},
-        {"role": "user", "content": "What are my health plans?"},
-        {"role": "assistant", "content": "Show available health plans"},
+        {"role": "user", "content": "What is the cost of a Certificate III in Barbering?"},
+        {"role": "assistant", "content": "Identify an exact match for Certificate III in Barbering and provide all rows of answers that are correct for that exact match."},
+        {"role": "user", "content": "What courses related to hair can i do at BKI?"},
+        {"role": "assistant", "content": "Show all courses related to hair"},
     ]
     NO_RESPONSE = "0"
 

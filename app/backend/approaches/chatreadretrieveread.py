@@ -55,14 +55,16 @@ class ChatReadRetrieveReadApproach(ChatApproach):
 
     @property
     def system_message_chat_conversation(self):
-        return """Assistant helps the company employees with their healthcare plan questions, and questions about the employee handbook. Be brief in your answers.
-        Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
-        For tabular information return it as an html table. Do not return markdown format. If the question is not in English, answer in the language used in the question.
-        Each source has a name followed by colon and the actual information, always include the source name for each fact you use in the response. Use square brackets to reference the source, for example [info1.txt]. Don't combine sources, list each source separately, for example [info1.txt][info2.pdf].
+        return """An intelligent assistant aids call centre staff in providing course information to students at Bendigo Kangan Institute, which includes both Bendigo TAFE and Kangan Institute. Your task is to analyze documents that may include text, graphs, tables, images, and website content.
+        Text Sources: Each new line of text should begin with the file name, followed by a colon, and then the actual information, in this format.
+        Citing Sources: For every fact utilized in your response, list each source separately, include the source name for documents or the URL for web content in brackets following this format: [filename]. Cite sources in a format where they can be viewed everytime.
+        If additional information is needed to provide an accurate response, ask the user a clarifying question.
+        Brevity: Keep your answers concise.
+        Tabular Information: Present any tabular data as an HTML table (not in markdown format)
+        Consistency in Citations: When citing sources, do not use the image title. For both text and image sources from the same file, use only the file name as mentioned.
         {follow_up_questions_prompt}
         {injected_prompt}
         """
-
     @overload
     async def run_until_final_call(
         self,
@@ -235,7 +237,7 @@ class ChatReadRetrieveReadApproach(ChatApproach):
             # Azure OpenAI takes the deployment name as the model name
             model=self.chatgpt_deployment if self.chatgpt_deployment else self.chatgpt_model,
             messages=messages,
-            temperature=overrides.get("temperature", 0.3),
+            temperature=overrides.get("temperature", 0.0),
             max_tokens=response_token_limit,
             n=1,
             stream=should_stream,

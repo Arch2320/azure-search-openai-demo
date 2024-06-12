@@ -1,6 +1,6 @@
 import { Outlet, NavLink, Link } from "react-router-dom";
 
-import github from "../../assets/github.svg";
+import BKI from "/workspaces/azure-search-openai-demo/app/frontend/src/assets/bendigoKanganTogether.svg";
 
 import styles from "./Layout.module.css";
 
@@ -14,40 +14,28 @@ const Layout = () => {
             <header className={styles.header} role={"banner"}>
                 <div className={styles.headerContainer}>
                     <Link to="/" className={styles.headerTitleContainer}>
-                        <h3 className={styles.headerTitle}>GPT + Enterprise data | Sample</h3>
+                        <h3 className={styles.headerTitle}>BKInsight</h3>
                     </Link>
                     <nav>
                         <ul className={styles.headerNavList}>
-                            <li>
-                                <NavLink to="/" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Chat
-                                </NavLink>
-                            </li>
                             <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/qa" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Ask a question
-                                </NavLink>
-                            </li>
-                            <li className={styles.headerNavLeftMargin}>
-                                <a href="https://aka.ms/entgptsearch" target={"_blank"} title="Github repository link">
-                                    <img
-                                        src={github}
-                                        alt="Github logo"
-                                        aria-label="Link to github repository"
-                                        width="20px"
-                                        height="20px"
-                                        className={styles.githubLogo}
-                                    />
+                                <a href="https://www.kangan.edu.au/" target={"_blank"} title="BKI link">
+                                    <img src={BKI} alt="BKI logo" aria-label="Link to BKI Website" width="400px" height="200x" className={styles.githubLogo} />
                                 </a>
                             </li>
                         </ul>
                     </nav>
-                    <h4 className={styles.headerRightText}>Azure OpenAI + AI Search</h4>
                     {useLogin && <LoginButton />}
                 </div>
             </header>
 
-            <Outlet />
+            <div className={styles.mainContent}>
+                <Outlet />
+            </div>
+
+            <div className={styles.footer}>
+                BKInsight can make mistakes. Always check important information.
+            </div>
         </div>
     );
 };

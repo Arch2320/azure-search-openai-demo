@@ -86,8 +86,8 @@ class SentenceTextSplitter(TextSplitter):
     """
     Class that splits pages into smaller chunks. This is required because embedding models may not be able to analyze an entire page at once
     """
-
-    def __init__(self, has_image_embeddings: bool, max_tokens_per_section: int = 500):
+    #ADP-DR increased the size
+    def __init__(self, has_image_embeddings: bool, max_tokens_per_section: int = 2000):
         self.sentence_endings = STANDARD_SENTENCE_ENDINGS + CJK_SENTENCE_ENDINGS
         self.word_breaks = STANDARD_WORD_BREAKS + CJK_WORD_BREAKS
         self.max_section_length = DEFAULT_SECTION_LENGTH
@@ -96,6 +96,7 @@ class SentenceTextSplitter(TextSplitter):
         self.section_overlap = self.max_section_length // DEFAULT_OVERLAP_PERCENT
         self.has_image_embeddings = has_image_embeddings
 
+    ####### ADP-DR updated to use find_split_position below
     def split_page_by_max_tokens(self, page_num: int, text: str) -> Generator[SplitPage, None, None]:
         """
         Recursively splits page by maximum number of tokens to better handle languages with higher token/word ratios.
@@ -105,34 +106,76 @@ class SentenceTextSplitter(TextSplitter):
             # Section is already within max tokens, return
             yield SplitPage(page_num=page_num, text=text)
         else:
-            # Start from the center and try and find the closest sentence ending by spiralling outward.
-            # IF we get to the outer thirds, then just split in half with a 5% overlap
-            start = int(len(text) // 2)
-            pos = 0
-            boundary = int(len(text) // 3)
-            split_position = -1
-            while start - pos > boundary:
-                if text[start - pos] in self.sentence_endings:
-                    split_position = start - pos
-                    break
-                elif text[start + pos] in self.sentence_endings:
-                    split_position = start + pos
-                    break
-                else:
-                    pos += 1
-
+            split_position = self.find_split_position(text)
             if split_position > 0:
-                first_half = text[: split_position + 1]
-                second_half = text[split_position + 1 :]
+                first_half = text[:split_position + 1]
+                second_half = text[split_position + 1:]
             else:
-                # Split page in half and call function again
-                # Overlap first and second halves by DEFAULT_OVERLAP_PERCENT%
-                middle = int(len(text) // 2)
-                overlap = int(len(text) * (DEFAULT_OVERLAP_PERCENT / 100))
-                first_half = text[: middle + overlap]
-                second_half = text[middle - overlap :]
+                middle = len(text) // 2
+                overlap = len(text) * (DEFAULT_OVERLAP_PERCENT / 100)
+                first_half = text[:middle + overlap]
+                second_half = text[middle - overlap:]
             yield from self.split_page_by_max_tokens(page_num, first_half)
             yield from self.split_page_by_max_tokens(page_num, second_half)
+
+
+    ####################################
+    ####### ADP-DR added to be better at splitting text at good spots
+    #################################
+    def find_split_position(self, text: str) -> int:
+        open_braces = 0
+        in_table = False
+        in_list = False
+        last_word_break = -1
+
+        for i in range(len(text) - 1, -1, -1):
+            # JSON Object boundaries
+            if text[i] == '{':
+                open_braces -= 1
+            elif text[i] == '}':
+                open_braces += 1
+                if open_braces == 0:
+                    return i
+            
+            # End of Paragraph
+            elif text[i:i+2] == "\n\n":
+                return i + 1
+            
+            # End of Table Row
+            elif text[i:i+5].lower() == "</tr>":
+                return i + 5
+            
+            # End of Table
+            elif text[i:i+8].lower() == "</table>":
+                in_table = False
+                return i + 8
+            
+            # Start of Table
+            elif text[i:i+7].lower() == "<table>":
+                in_table = True
+            
+            # End of List Item
+            elif text[i:i+5].lower() == "</li>":
+                return i + 5
+            
+            # End of List
+            elif text[i:i+6].lower() in ["</ul>", "</ol>"]:
+                in_list = False
+                return i + 6
+            
+            # Start of List
+            elif text[i:i+4].lower() in ["<ul>", "<ol>"]:
+                in_list = True
+            
+            # Split at Sentence End
+            elif text[i] in self.sentence_endings and not in_table and not in_list:
+                return i
+            
+            # General Word Break
+            elif text[i] in self.word_breaks:
+                last_word_break = i
+
+        return last_word_break if last_word_break != -1 else -1
 
     def split_pages(self, pages: List[Page]) -> Generator[SplitPage, None, None]:
         def find_page(offset):
@@ -161,26 +204,22 @@ class SentenceTextSplitter(TextSplitter):
                 end = length
             else:
                 # Try to find the end of the sentence
-                while (
-                    end < length
-                    and (end - start - self.max_section_length) < self.sentence_search_limit
-                    and all_text[end] not in self.sentence_endings
-                ):
+                while (end < length and 
+                    (end - start - self.max_section_length) < self.sentence_search_limit and 
+                    all_text[end] not in self.sentence_endings):
                     if all_text[end] in self.word_breaks:
                         last_word = end
                     end += 1
                 if end < length and all_text[end] not in self.sentence_endings and last_word > 0:
                     end = last_word  # Fall back to at least keeping a whole word
+
             if end < length:
                 end += 1
 
-            # Try to find the start of the sentence or at least a whole word boundary
             last_word = -1
-            while (
-                start > 0
-                and start > end - self.max_section_length - 2 * self.sentence_search_limit
-                and all_text[start] not in self.sentence_endings
-            ):
+            while (start > 0 and 
+                start > end - self.max_section_length - 2 * self.sentence_search_limit and 
+                all_text[start] not in self.sentence_endings):
                 if all_text[start] in self.word_breaks:
                     last_word = start
                 start -= 1
@@ -214,7 +253,7 @@ class SimpleTextSplitter(TextSplitter):
     This is required because embedding models may not be able to analyze an entire page at once
     """
 
-    def __init__(self, max_object_length: int = 1000):
+    def __init__(self, max_object_length: int = 8000):
         self.max_object_length = max_object_length
 
     def split_pages(self, pages: List[Page]) -> Generator[SplitPage, None, None]:

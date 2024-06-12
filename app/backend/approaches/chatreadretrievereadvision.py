@@ -104,7 +104,7 @@ class ChatReadRetrieveReadVisionApproach(ChatApproach):
         past_messages: list[ChatCompletionMessageParam] = messages[:-1]
 
         # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
-        user_query_request = "Generate search query for: " + original_user_query
+        user_query_request = "Create a search query for Microsoft AI search that retrieves documents where the variable is an exact match" + original_user_query
 
         query_response_token_limit = 100
         query_messages = build_messages(

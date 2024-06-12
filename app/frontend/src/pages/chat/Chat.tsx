@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { Checkbox, Panel, DefaultButton, TextField, SpinButton, Slider } from "@fluentui/react";
+import { Checkbox, Panel, DefaultButton, TextField, SpinButton, Slider, Dropdown } from "@fluentui/react";
 import { SparkleFilled } from "@fluentui/react-icons";
 import readNDJSONStream from "ndjson-readablestream";
 
@@ -30,9 +30,19 @@ import { useMsal } from "@azure/msal-react";
 import { TokenClaimsDisplay } from "../../components/TokenClaimsDisplay";
 import { GPT4VSettings } from "../../components/GPT4VSettings";
 
+type OverrideKeys = "No Override" | "Pricing";
+
 const Chat = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
     const [promptTemplate, setPromptTemplate] = useState<string>("");
+    const [selectedOverride, setSelectedOverride] = useState<string>("");
+
+    const preSetOverrides: Record<OverrideKeys, string> = {
+        "No Override": "",
+        Pricing:
+            "Provide a match for the variable provided and provide all rows of answers that are correct for that exact match. Only use the search results from 'KI Course Pricing 2024 reduced.pdf' as the basis for your answer. Provide the answer in an HTML table with the columns: Course name, code, AVERAGE ANNUAL COURSE COST - GFTP, AVERAGE ANNUAL CONCESSION COURSE COST- GFTO*, and AVERAGE ANNUAL COURSE COST - FFP. Ensure the answer is always accurate and includes all relevant rows if there are multiple matches. Always provide citations for the information in a format where the file can be viewed."
+    };
+
     const [temperature, setTemperature] = useState<number>(0.3);
     const [minimumRerankerScore, setMinimumRerankerScore] = useState<number>(0);
     const [minimumSearchScore, setMinimumSearchScore] = useState<number>(0);
@@ -282,19 +292,25 @@ const Chat = () => {
         setSelectedAnswer(index);
     };
 
+    const onOverrideSelectionChange = (_ev?: React.FormEvent<HTMLDivElement>, item?: any) => {
+        const key = item?.key as OverrideKeys;
+        setSelectedOverride(key || "");
+        setPromptTemplate(preSetOverrides[key] || "");
+    };
+
     return (
         <div className={styles.container}>
             <div className={styles.commandsContainer}>
                 <ClearChatButton className={styles.commandButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                 {showUserUpload && <UploadFile className={styles.commandButton} disabled={!isLoggedIn(client)} />}
-                <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+  <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
             </div>
             <div className={styles.chatRoot}>
                 <div className={styles.chatContainer}>
                     {!lastQuestionRef.current ? (
                         <div className={styles.chatEmptyState}>
                             <SparkleFilled fontSize={"120px"} primaryFill={"rgba(115, 118, 225, 1)"} aria-hidden="true" aria-label="Chat logo" />
-                            <h1 className={styles.chatEmptyStateTitle}>Chat with your data</h1>
+                            <h1 className={styles.chatEmptyStateTitle}>Your BKI Guide</h1>
                             <h2 className={styles.chatEmptyStateSubtitle}>Ask anything or try an example</h2>
                             <ExampleList onExampleClicked={onExampleClicked} useGPT4V={useGPT4V} />
                         </div>
@@ -361,7 +377,7 @@ const Chat = () => {
                     <div className={styles.chatInput}>
                         <QuestionInput
                             clearOnSend
-                            placeholder="Type a new question (e.g. does my plan cover annual eye exams?)"
+                            placeholder="Type a new question (e.g. what courses can I do at BKI?)"
                             disabled={isLoading}
                             onSend={question => makeApiRequest(question)}
                         />
@@ -388,6 +404,16 @@ const Chat = () => {
                     onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>Close</DefaultButton>}
                     isFooterAtBottom={true}
                 >
+                    <Dropdown
+                        className={styles.chatSettingsSeparator}
+                        label="Select a pre-set override"
+                        selectedKey={selectedOverride}
+                        onChange={onOverrideSelectionChange}
+                        placeholder="Select an override"
+                        options={Object.keys(preSetOverrides).map(key => ({ key, text: key }))}
+                        styles={{ dropdown: { width: 300 } }}
+                    />
+
                     <TextField
                         className={styles.chatSettingsSeparator}
                         defaultValue={promptTemplate}
@@ -408,26 +434,6 @@ const Chat = () => {
                         showValue
                         snapToStep
                     />
-
-                    <SpinButton
-                        className={styles.chatSettingsSeparator}
-                        label="Minimum search score"
-                        min={0}
-                        step={0.01}
-                        defaultValue={minimumSearchScore.toString()}
-                        onChange={onMinimumSearchScoreChange}
-                    />
-
-                    <SpinButton
-                        className={styles.chatSettingsSeparator}
-                        label="Minimum reranker score"
-                        min={1}
-                        max={4}
-                        step={0.1}
-                        defaultValue={minimumRerankerScore.toString()}
-                        onChange={onMinimumRerankerScoreChange}
-                    />
-
                     <SpinButton
                         className={styles.chatSettingsSeparator}
                         label="Retrieve this many search results:"
@@ -436,7 +442,6 @@ const Chat = () => {
                         defaultValue={retrieveCount.toString()}
                         onChange={onRetrieveCountChange}
                     />
-                    <TextField className={styles.chatSettingsSeparator} label="Exclude category" onChange={onExcludeCategoryChanged} />
 
                     {showSemanticRankerOption && (
                         <Checkbox

@@ -18,25 +18,18 @@ class RetrieveThenReadApproach(Approach):
     """
 
     system_chat_template = (
-        "You are an intelligent assistant helping Contoso Inc employees with their healthcare plan questions and employee handbook questions. "
-        + "Use 'you' to refer to the individual asking the questions even if they ask with 'I'. "
-        + "Answer the following question using only the data provided in the sources below. "
-        + "For tabular information return it as an html table. Do not return markdown format. "
-        + "Each source has a name followed by colon and the actual information, always include the source name for each fact you use in the response. "
-        + "If you cannot answer using the sources below, say you don't know. Use below example to answer"
-    )
+    "Provide an match for the variable provided and provide all rows of answers that are correct for that exact match. Only use the search results from KI Course Pricing 2024 reduced.pdf as the basis for your answer. Provide the answer in a HTML table with the Course name, code, AVERAGE ANNUAL COURSE COST - GFTP, AVERAGE ANNUAL CONCESSION COURSE COST- GFTO* and AVERAGE ANNUAL COURSE COST  FFP as the columns"
+)
+
 
     # shots/sample conversation
     question = """
-'What is the deductible for the employee plan for a visit to Overlake in Bellevue?'
+'"What is the cost of a Certificate III in Barbering?'
 
 Sources:
-info1.txt: deductibles depend on whether you are in-network or out-of-network. In-network deductibles are $500 for employee and $1000 for family. Out-of-network deductibles are $1000 for employee and $2000 for family.
-info2.pdf: Overlake is in-network for the employee plan.
-info3.pdf: Overlake is the name of the area that includes a park and ride near Bellevue.
-info4.pdf: In-network institutions include Overlake, Swedish and others in the region
+pricing.json: The cost of Certificate III in Barbering is $4,050.59 for GFTP, $810.00 for GFTO concession, and $13,978.97 for FFP.
 """
-    answer = "In-network deductibles are $500 for employee and $1000 for family [info1.txt] and Overlake is in-network for the employee plan [info2.pdf][info4.pdf]."
+    answer = "The cost of Certificate III in Barbering is $4,050.59 for GFTP, $810.00 for GFTO concession, and $13,978.97 for FFP [pricing.json]."
 
     def __init__(
         self,
@@ -96,7 +89,7 @@ info4.pdf: In-network institutions include Overlake, Swedish and others in the r
             vectors.append(await self.compute_text_embedding(q))
 
         # Only keep the text query if the retrieval mode uses text, otherwise drop it
-        query_text = q if has_text else None
+        query_text = f"'{q}'" if has_text else None
 
         results = await self.search(
             top,
