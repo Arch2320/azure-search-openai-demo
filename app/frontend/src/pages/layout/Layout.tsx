@@ -1,6 +1,6 @@
 import { Outlet, NavLink, Link } from "react-router-dom";
 
-import BKI from "/workspaces/azure-search-openai-demo/app/frontend/src/assets/bendigoKanganTogether.svg";
+import BKI from "../../assets/bendigoKanganTogether.svg";
 
 import styles from "./Layout.module.css";
 
