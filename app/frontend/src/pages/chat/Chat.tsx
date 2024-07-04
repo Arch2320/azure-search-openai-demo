@@ -303,7 +303,7 @@ const Chat = () => {
             <div className={styles.commandsContainer}>
                 <ClearChatButton className={styles.commandButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
                 {showUserUpload && <UploadFile className={styles.commandButton} disabled={!isLoggedIn(client)} />}
-  <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
+                {/*<SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />*/}
             </div>
             <div className={styles.chatRoot}>
                 <div className={styles.chatContainer}>
@@ -377,7 +377,7 @@ const Chat = () => {
                     <div className={styles.chatInput}>
                         <QuestionInput
                             clearOnSend
-                            placeholder="Type a new question (e.g. what courses can I do at BKI?)"
+                            placeholder="Type a new question (Press Shift + Enter to add a new line)"
                             disabled={isLoading}
                             onSend={question => makeApiRequest(question)}
                         />
